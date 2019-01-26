@@ -1,14 +1,24 @@
-import pygame as pg
+from pathlib import Path
 
-DISPLAY_SIZE = WIDTH, HEIGHT = 896, 672
+import pygame
+
+pg = pygame
+
+DISPLAY_SIZE = WIDTH, HEIGHT = 800, 600
+
+BG_COLOR = 0, 0, 0
+
+BLOCK_SIZE = WIDTH / 32
+
+
 
 class Interrupt(BaseException):
     pass
 
 
 def init():
-    global screen
-    screen = pg.display.set_mode(DISPLAY_SIZE)
+    global SCREEN
+    SCREEN = pg.display.set_mode(DISPLAY_SIZE)
 
 
 def handle_input():
@@ -18,35 +28,41 @@ def handle_input():
         raise Interrupt
     return keys
 
-def game_body():
-    x = y = 0
-    w = h = 50
-    clr = 255, 0, 0
-    step = 10
-    while True:
-        keys = yield None
-        x += step * (keys[pg.K_RIGHT] - keys[pg.K_LEFT])
-        y += step * (keys[pg.K_DOWN] - keys[pg.K_UP])
-        x %= WIDTH
-        y %= HEIGHT
-        
-        pg.draw.rect(screen, clr, (x,y, w, h))
+
+class Character(pygame.sprite.Sprite):
+    def __init__(self):
+        self.step = BLOCK_SIZE
+        self.rect = pygame.Rect((0,0, BLOCK_SIZE, BLOCK_SIZE))
+        super().__init__()
+        self.color = 255, 0, 0
+        self.image = pygame.surface.Surface((BLOCK_SIZE, BLOCK_SIZE))
+        self.image.fill(self.color)
+
+    def update(self, keys):
+        self.rect.x += self.step * (keys[pg.K_RIGHT] - keys[pg.K_LEFT])
+        self.rect.y += self.step * (keys[pg.K_DOWN] - keys[pg.K_UP])
+        self.rect.x %= WIDTH
+        self.rect.y %= HEIGHT
+
 
 
 def frame_clear():
-    screen.fill((0, 0, 0))
+    SCREEN.fill((0, 0, 0))
 
 
 def scene_main():
     
     clk = pg.time.Clock()
-    game = game_body()
-    next(game)
+    character = pygame.sprite.Group()
+    character.add(Character())
+
     while True:
         frame_clear()
-        game.send(handle_input())
+        keys = handle_input()
+        character.update(keys)
+        character.draw(SCREEN)
         pg.display.flip()
-        clk.tick(33)
+        clk.tick(30)
 
 
 def main():
