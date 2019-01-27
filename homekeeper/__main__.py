@@ -44,15 +44,12 @@ class GameObject(pygame.sprite.Sprite):
         self.step = BLOCK_SIZE
         self.rect = pygame.Rect((pos[0] * BLOCK_SIZE, pos[1] * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE))
         super().__init__()
-        self.image = pygame.surface.Surface((BLOCK_SIZE, BLOCK_SIZE))
-        self.image.fill(self.color)
+
         self.board[self.x, self.y] = self
         self.previous = None
 
     def __hash__(self):
         return hash((self.x, self.y))
-
-
 
     def movable(self, direction, pushing=False, count=0):
         new_x = self.x + direction[0]
@@ -91,6 +88,9 @@ class GameObject(pygame.sprite.Sprite):
         self.board[self.x, self.y] = self
         self.moved(direction)
 
+    def update(self):
+        pass
+
     def kill(self):
         super().kill()
         del self.board[self.x, self.y]
@@ -102,6 +102,42 @@ class GameObject(pygame.sprite.Sprite):
     def __init_subclass__(cls):
         if "tile_char" in cls.__dict__:
             cls.tile_registry[cls.tile_char] = cls
+        cls.image = pygame.surface.Surface((BLOCK_SIZE, BLOCK_SIZE))
+        cls.image.fill(cls.color)
+
+vanish_states = "solid blinking dead".split()
+
+class Vanishable:
+    """Mixin class for things to go poof"""
+
+    vanish_frames = 10
+    blink_frame_count = 3
+
+    def __init__(self, *args, **kw):
+        super().__init__(*args, **kw)
+        self.state = "solid"
+        self.blank_image = Empty.image
+
+
+    def update(self):
+        if self.state == "blinking":
+            if not (self.count_down - self.vanish_frames) % self.blink_frame_count:
+                self.image = self.blank_image if self.image is self.original_image else self.original_image
+            self.count_down -= 1
+
+            if self.count_down == 0:
+                self.state = "dead"
+                self.final_kill()
+        super().update()
+
+    def kill(self):
+        self.count_down = self.vanish_frames
+        self.state = "blinking"
+        self.original_image = self.image
+        self.pushable = False
+
+    def final_kill(self):
+        super().kill()
 
 
 class Empty(GameObject):
@@ -115,7 +151,7 @@ class Wall(GameObject):
     tile_char = "*"
 
 
-class Dirty(GameObject):
+class Dirty(Vanishable, GameObject):
     color = 0, 0, 255
     traversable = True
     pushable = True
@@ -198,6 +234,7 @@ class Board:
 
     def update(self, screen):
         for x, y, block in self:
+            block.update()
             screen.blit(block.image, (block.x * BLOCK_SIZE, block.y * BLOCK_SIZE))
 
 
@@ -213,7 +250,7 @@ class Character(GameObject):
         self.move_count = self.move_delay
 
 
-    def update(self, keys):
+    def update_pos(self, keys):
         self.move_count -= 1
 
         if self.move_count > 0:
@@ -240,7 +277,7 @@ def scene_main():
     while True:
         frame_clear()
         keys = handle_input()
-        character.update(keys)
+        character.update_pos(keys)
         board.update(SCREEN)
         pg.display.flip()
         clk.tick(30)

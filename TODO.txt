@@ -1,4 +1,3 @@
-Animate piece vanishing
 create extra dirty classes/groups
 On screen display of Score and goals for each level
 replace blocks by static art
