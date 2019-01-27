@@ -29,6 +29,9 @@ class LevelComplete(Interrupt):
 class GameOver(Interrupt):
     pass
 
+class UserQuit(Interrupt):
+    pass
+
 
 def init():
     global SCREEN, FONT
@@ -67,7 +70,7 @@ def handle_input():
     pg.event.pump()
     keys = pg.key.get_pressed()
     if keys[pg.K_ESCAPE]:
-        raise Interrupt
+        raise UserQuit
     return keys
 
 
@@ -198,13 +201,15 @@ class Dirty(Vanishable, GameObject):
     pushable = True
     tile_char = "A"
     image_file = "blue_dirty.png"
+    number_to_vanish = 4
 
     def moved(self, direction):
+        global SCORE
         if not (direction[0] or direction[1]):
             return
 
         equal_neighbours = self.get_equal_neighbours()
-        if len(equal_neighbours) < 4:
+        if len(equal_neighbours) < self.number_to_vanish:
             return
         score_bonus = 1
         score = 0
@@ -213,7 +218,7 @@ class Dirty(Vanishable, GameObject):
             score_bonus *= 2
             neighbour.kill()
 
-        self.board.score += score
+        SCORE += score
         self.board.level.killed_blocks += len(equal_neighbours)
 
     def get_equal_neighbours(self, group = None, seen=None):
@@ -233,9 +238,20 @@ class Dirty(Vanishable, GameObject):
 
 
 class Dirty2(Dirty):
-    color = Empty.color
     image_file = "cyan_dirty.png"
     tile_char = "B"
+
+class Dirty3(Dirty):
+    image_file = "yellow_dirty.png"
+    tile_char = "C"
+
+class Dirty4(Dirty):
+    image_file = "red_dirty.png"
+    tile_char = "D"
+
+class Dirty5(Dirty):
+    image_file = "black_dirty.png"
+    tile_char = "E"
 
 
 class Level:
@@ -314,7 +330,7 @@ class Display:
 
     def update(self):
         goal_str = '/'.join(map(str, (self.board.level.killed_blocks, self.board.level.goal)))
-        text = f"{self.board.score:<8d}{goal_str:^40s}{self.board.level.remaining_time:>4d}"
+        text = f"{SCORE:<8d}{goal_str:^40s}{self.board.level.remaining_time:>4d}"
         if text != self.previous_text:
             self.rendered = FONT.render(text, True, self.color)
             self.previous_text = text
@@ -409,9 +425,9 @@ def frame_clear():
     SCREEN.fill((0, 0, 0))
 
 
-def scene_main():
-    clk = pg.time.Clock()
-    board = Board(level_number=0)
+def scene_main(clk, level_number):
+
+    board = Board(level_number=level_number)
     character = Character(board, (1, 1))
 
 
@@ -425,15 +441,27 @@ def scene_main():
 
 
 def main():
+    global SCORE
+    SCORE = 0
     init()
+    level_number = 0
+    clk = pg.time.Clock()
     try:
-        scene_main()
+        while True:
+            try:
+                scene_main(clk, level_number)
+            except LevelComplete:
+                # TODO: level transition graphics
+                level_number += 1
+                if level_number > len(levels):
+                    # Game Over: Win graphics
+                    raise GameOver
     except Interrupt:
         pass
     finally:
         pg.display.quit()
         pg.quit()
-    
+
     
 if __name__ == "__main__":
     main()
