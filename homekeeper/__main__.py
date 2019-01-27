@@ -44,7 +44,7 @@ def init():
         cls.image.blit(load_image(cls.image_file, size=BLOCK_SIZE), (0,0))
 
 def _load_resource(filename, module_name, pg_builder, args):
-    # Workaround to read font file even from packaged gamefile:
+    # Workaround to read resource files even from packaged gamefile:
     with tempfile.NamedTemporaryFile() as f_:
         f_.write(resources.open_binary("homekeeper." + module_name, filename).read())
         f_.seek(0)
@@ -378,11 +378,13 @@ class Board:
 
 
 class Character(GameObject):
-    color = 255, 0, 0
+    color = Empty.color
     traversable = False
     pushable = False
     move_delay = 4
     strength = 2
+    image_file = "broom_0.png"
+    tile_char = "#"
 
     def __init__(self, *args, **kw):
         super().__init__(*args, **kw)
