@@ -206,6 +206,7 @@ class Character(GameObject):
     traversable = False
     pushable = False
     move_delay = 4
+    strength = 2
 
     def __init__(self, *args, **kw):
         super().__init__(*args, **kw)
@@ -219,10 +220,10 @@ class Character(GameObject):
             return
         direction = (keys[pg.K_RIGHT] - keys[pg.K_LEFT]), (keys[pg.K_DOWN] - keys[pg.K_UP])
 
-        if self.movable(direction, keys[pg.K_SPACE], 2):
+        if self.movable(direction, keys[pg.K_SPACE], self.strength):
             if direction[0] or direction[1]:
                 self.move_count = self.move_delay * (1 + keys[pg.K_SPACE])
-            self.move(direction, keys[pg.K_SPACE], 1)
+            self.move(direction, keys[pg.K_SPACE], self.strength)
 
 
 

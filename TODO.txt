@@ -1,8 +1,7 @@
-fix pushing-with-strenght 2
 Animate piece vanishing
+create extra dirty classes/groups
 On screen display of Score and goals for each level
 replace blocks by static art
-create extra dirty classes
 make dirty appear gradually and time-based goals
 Determining level goals for first level
 create extra levels
