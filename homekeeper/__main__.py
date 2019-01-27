@@ -1,7 +1,10 @@
+import math
+import random
 from importlib import resources
-from pathlib import Path
 
 import pygame
+
+from .levels import levels
 
 pg = pygame
 
@@ -14,6 +17,14 @@ BLOCK_SIZE = WIDTH / 32
 SCREEN = None
 
 class Interrupt(BaseException):
+    pass
+
+
+class LevelComplete(Interrupt):
+    pass
+
+
+class GameOver(Interrupt):
     pass
 
 
@@ -195,14 +206,82 @@ class Dirty2(Dirty):
     tile_char = "B"
 
 
+class Level:
+    def __init__(self, board, level_number):
+        self.board = board
+        self.__dict__.update(levels[level_number])
+        self.start_time = pygame.time.get_ticks()
+        self.killed_blocks = 0
+        self.pre_pop_had_run = False
+        classes = []
+        for class_name, chances in self.classes:
+            class_ = globals()[class_name]
+            classes.extend([class_] * chances)
+
+        #self.previous_time = 0
+
+        self.classes = classes
+
+    def pre_pop(self):
+        for i in range(self.starting_blocks):
+            self.pop_block()
+        self.pre_pop_had_run = True
+
+    def pop_block(self):
+        class_ = random.choice(self.classes)
+        counter = 0
+        while True:
+            x = random.randint(0, self.board.width)
+            y = random.randint(0, self.board.height)
+            if type(self.board[x, y]) == Empty:
+                break
+            counter += 1
+            if counter > 3 * self.board.width * self.board.height:
+                raise GameOver
+
+        block = class_(self.board, (x, y))
+        self.last_block = pygame.time.get_ticks() / 1000
+        time_variation = self.dirty_pop_noise / 2
+        self.next_block = self.last_block + (self.dirty_pop_rate + random.uniform(-time_variation, +time_variation))
+
+    @property
+    def remaining_time(self):
+        return math.floor(self.total_time - self.elapsed_time)
+
+    @property
+    def elapsed_time(self):
+        return (pygame.time.get_ticks() - self.start_time) / 1000
+
+    def update(self):
+        if not self.pre_pop_had_run:
+            self.pre_pop()
+
+        if self.elapsed_time >= self.next_block:
+            self.pop_block()
+
+        #if round(self.elapsed_time) > self.previous_time:
+            #self.previous_time = round(self.elapsed_time)
+
+
+        self.check_goals()
+
+    def check_goals(self):
+        if self.killed_blocks >= self.goal:
+            raise LevelComplete
+        if self.elapsed_time > self.total_time:
+            raise GameOver
+
+
+
+
 class Board:
-    def __init__(self, width=32, height=24, mapname=""):
+    def __init__(self, width=32, height=24, level_number=0):
         self.data = [None] * width * height
         self.width = width
         self.height = height
         self.clear()
-        if map:
-            self.load_map(mapname)
+        self.level = Level(self, level_number)
+        self.load_map(self.level.map)
         self.score = 0
 
     def clear(self):
@@ -234,10 +313,9 @@ class Board:
             for y in range(self.height):
                 yield x, y, self[x, y]
 
-    def draw(self, screen):
-        pass
 
     def update(self, screen):
+        self.level.update()
         for x, y, block in self:
             block.update()
             screen.blit(block.image, (block.x * BLOCK_SIZE, block.y * BLOCK_SIZE))
@@ -275,7 +353,7 @@ def frame_clear():
 
 def scene_main():
     clk = pg.time.Clock()
-    board = Board(mapname="bedroom.txt")
+    board = Board(level_number=0)
     character = Character(board, (1, 1))
 
 
