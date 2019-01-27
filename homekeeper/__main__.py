@@ -30,9 +30,13 @@ def handle_input():
     return keys
 
 
-class Base(pygame.sprite.Sprite):
+class GameObject(pygame.sprite.Sprite):
     tile_registry = {}
     color = BG_COLOR
+
+    traversable = True
+    pushable = False
+
 
     def __init__(self, board, pos=(0,0)):
         self.board = board
@@ -98,10 +102,6 @@ class Base(pygame.sprite.Sprite):
     def __init_subclass__(cls):
         if "tile_char" in cls.__dict__:
             cls.tile_registry[cls.tile_char] = cls
-
-class GameObject(Base):
-    traversable = True
-    pushable = False
 
 
 class Empty(GameObject):
@@ -175,7 +175,7 @@ class Board:
                 for x, char in enumerate(row):
                     if x >= self.width:
                         continue
-                    cls = Base.tile_registry.get(char, Empty)
+                    cls = GameObject.tile_registry.get(char, Empty)
                     self[x, y] = cls(self, (x, y))
 
 
