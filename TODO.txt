@@ -1,7 +1,4 @@
-home screen, level up and and game-over screens
-refine publishing metadata
 background art
 animate art
 create extras - like speed powers and extra pushes
 create extra levels
-publish and upload to gamejam site

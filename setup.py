@@ -5,7 +5,7 @@ from setuptools import setup
 setup(
     name = 'homekeeper',
     packages = ['homekeeper'],
-    version = "0.1",
+    version = "1.0",
     license = "LGPLv3+,by-nc-sa-4.0",
     author = "João S. O. Bueno",
     author_email = "gwidion@gmail.com",

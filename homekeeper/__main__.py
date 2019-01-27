@@ -13,7 +13,7 @@ from .sound import synthesize_sounds
 
 pg = pygame
 
-DISPLAY_SIZE = WIDTH, HEIGHT = 800, 600
+DISPLAY_SIZE = WIDTH, HEIGHT = 1024, 768
 
 BG_COLOR = 0, 0, 0
 
@@ -48,7 +48,7 @@ def init():
     FONT = load_font("BalooThambi-Regular.ttf", (60, ))
     BIG_FONT = load_font("BalooThambi-Regular.ttf", (100, ))
     SMALL_FONT = load_font("BalooThambi-Regular.ttf", (40, ))
-    SCREEN = pg.display.set_mode(DISPLAY_SIZE)
+    SCREEN = pg.display.set_mode(DISPLAY_SIZE, pg.FULLSCREEN)
 
 
     SOUNDS = synthesize_sounds()
@@ -503,7 +503,10 @@ def scene_main(clk, level_number):
 
     while True:
         frame_clear()
-        keys = handle_input()
+        try:
+            keys = handle_input()
+        except UserQuit:
+            game_over_screen(clk, "Game Paused")
         character.update_pos(keys)
         board.update(SCREEN)
         pg.display.flip()
@@ -513,7 +516,7 @@ def scene_main(clk, level_number):
 def game_over_screen(clk, message):
     SCREEN.fill((127, 127, 127))
     text1 = message, BIG_FONT
-    text2 = f"FINAL SCORE: {SCORE}", FONT
+    text2 = f"SCORE: {SCORE}", FONT
     text3 = "<Space> to play", SMALL_FONT
     text4 = "Q to quit", SMALL_FONT
 
