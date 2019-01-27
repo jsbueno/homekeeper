@@ -288,9 +288,10 @@ class Display:
         self.board = board
 
     def update(self):
-        text = f"{self.board.level.remaining_time:4d}{self.board.score:^10d}{self.board.level.killed_blocks:>3d}/{self.board.level.goal:>3d}"
+        goal_str = '/'.join(map(str, (self.board.level.killed_blocks, self.board.level.goal)))
+        text = f"{self.board.score:<8d}{goal_str:^7s}{self.board.level.remaining_time:>4d}"
         rendered = FONT.render(text, True, self.color)
-        SCREEN.blit(rendered, ((SCREEN.get_width() - rendered.get_width()) // 2 ,0))
+        SCREEN.blit(rendered, (WIDTH // 5, SCREEN.get_height() - rendered.get_height()))
 
 
 class Board:
