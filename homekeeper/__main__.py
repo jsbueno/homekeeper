@@ -361,7 +361,7 @@ class Board:
         self.score = 0
         self.level_up_triggered = False
         self.events = []
-
+        self.last_event = None
     def clear(self):
         for x, y, _ in self:
             empty = Empty(self, (x, y))
@@ -400,9 +400,10 @@ class Board:
 
     def check_events(self):
 
-        while self.events and pygame.time.get_ticks() < self.events[0][0]:
+        while self.events and pygame.time.get_ticks() >= self.events[0][0]:
             event = heapq.heappop(self.events)
-            if event == "LevelComplete":
+            self.last_event = event
+            if event[1] == "LevelComplete":
                 raise LevelComplete
 
     def update(self, screen):
