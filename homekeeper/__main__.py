@@ -1,5 +1,7 @@
 import math
 import random
+import tempfile
+import sys
 from importlib import resources
 
 import pygame
@@ -29,8 +31,15 @@ class GameOver(Interrupt):
 
 
 def init():
-    global SCREEN
+    global SCREEN, FONT
+    pygame.init()
     SCREEN = pg.display.set_mode(DISPLAY_SIZE)
+
+    # Workaround to read font file even from packaged gamefile:
+    with tempfile.NamedTemporaryFile() as f_:
+        f_.write(resources.open_binary("homekeeper.fonts", "pixelated.ttf").read())
+        f_.seek(0)
+        FONT = pygame.font.Font(f_.name, int(BLOCK_SIZE * 4))
 
 
 def handle_input():
@@ -183,7 +192,7 @@ class Dirty(Vanishable, GameObject):
             neighbour.kill()
 
         self.board.score += score
-        print(self.board.score)
+        self.board.level.killed_blocks += len(equal_neighbours)
 
     def get_equal_neighbours(self, group = None, seen=None):
         if seen == None:
@@ -231,8 +240,8 @@ class Level:
         class_ = random.choice(self.classes)
         counter = 0
         while True:
-            x = random.randint(0, self.board.width)
-            y = random.randint(0, self.board.height)
+            x = random.randrange(0, self.board.width)
+            y = random.randrange(0, self.board.height)
             if type(self.board[x, y]) == Empty:
                 break
             counter += 1
@@ -272,6 +281,16 @@ class Level:
             raise GameOver
 
 
+class Display:
+    color = 0, 0, 0
+
+    def __init__(self, board):
+        self.board = board
+
+    def update(self):
+        text = f"{self.board.level.remaining_time:4d}{self.board.score:^10d}{self.board.level.killed_blocks:>3d}/{self.board.level.goal:>3d}"
+        rendered = FONT.render(text, True, self.color)
+        SCREEN.blit(rendered, ((SCREEN.get_width() - rendered.get_width()) // 2 ,0))
 
 
 class Board:
@@ -281,6 +300,7 @@ class Board:
         self.height = height
         self.clear()
         self.level = Level(self, level_number)
+        self.display = Display(self)
         self.load_map(self.level.map)
         self.score = 0
 
@@ -300,7 +320,11 @@ class Board:
 
 
     def __getitem__(self, item):
-        return self.data[item[1] * self.width + item[0]]
+        try:
+            return self.data[item[1] * self.width + item[0]]
+        except IndexError:
+            print(f"Index out of range: {item!r}", file=sys.stderr)
+            return Empty(self, (0, 0))
 
     def __setitem__(self, item, value):
         self.data[item[1] * self.width + item[0]] = value
@@ -319,6 +343,7 @@ class Board:
         for x, y, block in self:
             block.update()
             screen.blit(block.image, (block.x * BLOCK_SIZE, block.y * BLOCK_SIZE))
+        self.display.update()
 
 
 class Character(GameObject):

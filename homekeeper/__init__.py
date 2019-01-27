@@ -1,2 +1,3 @@
-import homekeeper.maps
+import homekeeper.fonts
 import homekeeper.images
+import homekeeper.maps

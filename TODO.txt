@@ -1,8 +1,9 @@
 On screen display of Score and goals for each level
 replace blocks by static art
-Determining level goals for first level
 create extra levels
-refine publising metada
+home screen, level up and and game-over screens
+refine publishing metadata
+background art
 animate art
 create sound effects for swipping and dust vanishing
 create extras - like speed powers and extra pushes
