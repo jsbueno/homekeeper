@@ -123,7 +123,10 @@ class GameObject(pygame.sprite.Sprite):
             return False
 
         new_pos = self.board[new_x, new_y]
-        if not new_pos.traversable:
+        if not new_pos.traversable and not isinstance(new_pos, Dirty):
+            return False
+
+        if not new_pos.traversable and not pushing:
             return False
 
         if not new_pos.pushable:
@@ -278,6 +281,7 @@ class Dirty(Vanishable, GameObject):
 
 
 class Dirty2(Dirty):
+    traversable = False
     image_file = "cyan_dirty.png"
     tile_char = "B"
 
