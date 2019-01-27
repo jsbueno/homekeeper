@@ -1,4 +1,3 @@
-replace blocks by static art
 create extra levels
 home screen, level up and and game-over screens
 refine publishing metadata

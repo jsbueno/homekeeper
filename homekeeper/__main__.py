@@ -35,7 +35,7 @@ def init():
     pygame.init()
     SCREEN = pg.display.set_mode(DISPLAY_SIZE)
 
-    FONT = load_font("BalooThambi-Regular.ttf", (int(BLOCK_SIZE) * 2, ))
+    FONT = load_font("BalooThambi-Regular.ttf", (int(BLOCK_SIZE * 1.7), ))
 
     for cls in GameObject.tile_registry.values():
         if not 'image_file' in cls.__dict__:
@@ -305,7 +305,7 @@ class Level:
 
 
 class Display:
-    color = 0, 0, 0, 128
+    color = 255, 255, 255
 
     def __init__(self, board):
         self.board = board
@@ -325,7 +325,7 @@ class Display:
 
 
 class Board:
-    def __init__(self, width=32, height=24, level_number=0):
+    def __init__(self, width=32, height=23, level_number=0):
         self.data = [None] * width * height
         self.width = width
         self.height = height
