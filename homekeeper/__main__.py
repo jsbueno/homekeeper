@@ -37,9 +37,9 @@ def init():
 
     # Workaround to read font file even from packaged gamefile:
     with tempfile.NamedTemporaryFile() as f_:
-        f_.write(resources.open_binary("homekeeper.fonts", "pixelated.ttf").read())
+        f_.write(resources.open_binary("homekeeper.fonts", "BalooThambi-Regular.ttf").read())
         f_.seek(0)
-        FONT = pygame.font.Font(f_.name, int(BLOCK_SIZE * 4))
+        FONT = pygame.font.Font(f_.name, int(BLOCK_SIZE * 2))
 
 
 def handle_input():
@@ -282,16 +282,23 @@ class Level:
 
 
 class Display:
-    color = 0, 0, 0
+    color = 0, 0, 0, 128
 
     def __init__(self, board):
         self.board = board
+        self.x_offset = None
+        self.previous_text = ""
 
     def update(self):
         goal_str = '/'.join(map(str, (self.board.level.killed_blocks, self.board.level.goal)))
-        text = f"{self.board.score:<8d}{goal_str:^7s}{self.board.level.remaining_time:>4d}"
-        rendered = FONT.render(text, True, self.color)
-        SCREEN.blit(rendered, (WIDTH // 5, SCREEN.get_height() - rendered.get_height()))
+        text = f"{self.board.score:<8d}{goal_str:^40s}{self.board.level.remaining_time:>4d}"
+        if text != self.previous_text:
+            self.rendered = FONT.render(text, True, self.color)
+            self.previous_text = text
+        if self.x_offset is None:
+            self.x_offset = (WIDTH - self.rendered.get_width()) // 2
+            self.y_offset = HEIGHT - self.rendered.get_height() + BLOCK_SIZE * 0.8
+        SCREEN.blit(self.rendered, (self.x_offset, self.y_offset))
 
 
 class Board:
