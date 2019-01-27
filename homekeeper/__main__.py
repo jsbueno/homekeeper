@@ -39,19 +39,27 @@ class UserQuit(Interrupt):
 
 
 def init():
-    global SCREEN, FONT, SOUNDS
+    global SCREEN, SOUNDS, FONT
     pygame.init()
+    FONT = load_font("BalooThambi-Regular.ttf", (60, ))
     SCREEN = pg.display.set_mode(DISPLAY_SIZE)
 
-    FONT = load_font("BalooThambi-Regular.ttf", (int(BLOCK_SIZE * 1.7), ))
+
+    SOUNDS = synthesize_sounds()
+
+    reload_images()
+
+def reload_images():
 
     for cls in GameObject.tile_registry.values():
+        cls.image = pygame.surface.Surface((BLOCK_SIZE, BLOCK_SIZE))
+        cls.image.fill(cls.color)
         if not 'image_file' in cls.__dict__:
             continue
         # cls.image = load_image(cls.image_file, size=BLOCK_SIZE)
         cls.image.blit(load_image(cls.image_file, size=BLOCK_SIZE), (0,0))
 
-    SOUNDS = synthesize_sounds()
+
 
 def _load_resource(filename, module_name, pg_builder, args):
     # Workaround to read resource files even from packaged gamefile:
@@ -153,8 +161,7 @@ class GameObject(pygame.sprite.Sprite):
     def __init_subclass__(cls):
         if "tile_char" in cls.__dict__:
             cls.tile_registry[cls.tile_char] = cls
-        cls.image = pygame.surface.Surface((BLOCK_SIZE, BLOCK_SIZE))
-        cls.image.fill(cls.color)
+
 
 vanish_states = "solid blinking dead".split()
 
@@ -339,42 +346,56 @@ class Display:
 
     def update(self):
         goal_str = '/'.join(map(str, (self.board.level.killed_blocks, self.board.level.goal)))
-        text = f"{SCORE:<8d}{goal_str:^40s}{self.board.level.remaining_time:>4d}"
+        text = f"{SCORE:<6d}{goal_str:^15s}{self.board.level.remaining_time:>4d}"
         if text != self.previous_text:
             self.rendered = FONT.render(text, True, self.color)
             self.previous_text = text
         if self.x_offset is None:
             self.x_offset = (WIDTH - self.rendered.get_width()) // 2
-            self.y_offset = HEIGHT - self.rendered.get_height() + BLOCK_SIZE * 0.8
+            self.y_offset = HEIGHT - self.rendered.get_height()
         SCREEN.blit(self.rendered, (self.x_offset, self.y_offset))
 
 
 class Board:
-    def __init__(self, width=32, height=23, level_number=0):
-        self.data = [None] * width * height
-        self.width = width
-        self.height = height
-        self.clear()
+    def __init__(self, level_number=0):
         self.level = Level(self, level_number)
-        self.display = Display(self)
         self.load_map(self.level.map)
+        self.display = Display(self)
         self.score = 0
         self.level_up_triggered = False
         self.events = []
         self.last_event = None
+
     def clear(self):
         for x, y, _ in self:
             empty = Empty(self, (x, y))
 
 
     def load_map(self, mapname):
+        global BLOCK_SIZE
         with resources.open_text("homekeeper.maps", mapname) as map_:
-            for y, row in enumerate(map_):
-                for x, char in enumerate(row):
-                    if x >= self.width:
-                        continue
-                    cls = GameObject.tile_registry.get(char, Empty)
-                    self[x, y] = cls(self, (x, y))
+            data = map_.read()
+        map_ = data.split("\n")
+        if not map_[-1].strip("\n"):
+            map_.pop()
+
+        self.width = len(map_[0])
+        self.height = len(map_)
+
+        self.data = [None] * self.width * self.height
+
+        for y, row in enumerate(map_):
+            for x, char in enumerate(row):
+                if x >= self.width:
+                    continue
+                cls = GameObject.tile_registry.get(char, Empty)
+                self[x, y] = cls(self, (x, y))
+
+        BLOCK_SIZE = WIDTH // self.width
+        print(f"new block size {BLOCK_SIZE}")
+        reload_images()
+        if hasattr(self, "display"):
+            self.display.x_offset = None
 
 
     def __getitem__(self, item):
@@ -440,7 +461,6 @@ class Character(GameObject):
             if direction[0] or direction[1]:
                 self.move_count = self.move_delay * (1 + keys[pg.K_SPACE])
             self.move(direction, keys[pg.K_SPACE], self.strength)
-
 
 
 def frame_clear():
