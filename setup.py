@@ -14,7 +14,8 @@ setup(
     py_modules = ['homekeeper'],
     url = 'https://github.com/jsbueno/homekeeper',
     long_description = '', # open('README.md').read(),
-    test_requires = ['pytest'],
+    requires = ["pygame", "numpy"],
+    test_requires = [],
     classifiers = [
         "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",

@@ -1,12 +1,15 @@
+import heapq
 import math
 import random
 import tempfile
 import sys
 from importlib import resources
 
+
 import pygame
 
 from .levels import levels
+from .sound import synthesize_sounds
 
 pg = pygame
 
@@ -17,6 +20,7 @@ BG_COLOR = 0, 0, 0
 BLOCK_SIZE = WIDTH / 32
 
 SCREEN = None
+
 
 class Interrupt(BaseException):
     pass
@@ -29,12 +33,13 @@ class LevelComplete(Interrupt):
 class GameOver(Interrupt):
     pass
 
+
 class UserQuit(Interrupt):
     pass
 
 
 def init():
-    global SCREEN, FONT
+    global SCREEN, FONT, SOUNDS
     pygame.init()
     SCREEN = pg.display.set_mode(DISPLAY_SIZE)
 
@@ -45,6 +50,8 @@ def init():
             continue
         # cls.image = load_image(cls.image_file, size=BLOCK_SIZE)
         cls.image.blit(load_image(cls.image_file, size=BLOCK_SIZE), (0,0))
+
+    SOUNDS = synthesize_sounds()
 
 def _load_resource(filename, module_name, pg_builder, args):
     # Workaround to read resource files even from packaged gamefile:
@@ -310,12 +317,14 @@ class Level:
         #if round(self.elapsed_time) > self.previous_time:
             #self.previous_time = round(self.elapsed_time)
 
-
         self.check_goals()
 
+
     def check_goals(self):
-        if self.killed_blocks >= self.goal:
-            raise LevelComplete
+        if self.killed_blocks >= self.goal and not self.board.level_up_triggered:
+            SOUNDS["level_up"].play()
+            self.board.level_up_triggered = True
+            self.board.add_event(time_offset=1, event="LevelComplete")
         if self.elapsed_time > self.total_time:
             raise GameOver
 
@@ -350,6 +359,8 @@ class Board:
         self.display = Display(self)
         self.load_map(self.level.map)
         self.score = 0
+        self.level_up_triggered = False
+        self.events = []
 
     def clear(self):
         for x, y, _ in self:
@@ -384,9 +395,19 @@ class Board:
             for y in range(self.height):
                 yield x, y, self[x, y]
 
+    def add_event(self, time_offset, event):
+        heapq.heappush(self.events, (pygame.time.get_ticks() + time_offset * 1000, event)   )
+
+    def check_events(self):
+
+        while self.events and pygame.time.get_ticks() < self.events[0][0]:
+            event = heapq.heappop(self.events)
+            if event == "LevelComplete":
+                raise LevelComplete
 
     def update(self, screen):
         self.level.update()
+        self.check_events()
         for x, y, block in self:
             block.update()
             screen.blit(block.image, (block.x * BLOCK_SIZE, block.y * BLOCK_SIZE))
@@ -452,6 +473,7 @@ def main():
                 scene_main(clk, level_number)
             except LevelComplete:
                 # TODO: level transition graphics
+                pygame.time.delay(1000)
                 level_number += 1
                 if level_number > len(levels):
                     # Game Over: Win graphics

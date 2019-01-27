@@ -1,8 +1,8 @@
-create extra levels
 home screen, level up and and game-over screens
 refine publishing metadata
 background art
 animate art
-create sound effects for swipping and dust vanishing
 create extras - like speed powers and extra pushes
+create extra levels
+create sound effects for swipping and dust vanishing, dust converters
 publish and upload to gamejam site
