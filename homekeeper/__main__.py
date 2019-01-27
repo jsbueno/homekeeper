@@ -33,16 +33,21 @@ class LevelComplete(Interrupt):
 class GameOver(Interrupt):
     pass
 
+class GameComplete(GameOver):
+    pass
+
 
 class UserQuit(Interrupt):
     pass
 
 
 def init():
-    global SCREEN, SOUNDS, FONT
+    global SCREEN, SOUNDS, FONT, SMALL_FONT, BIG_FONT
     pygame.mixer.init(22100, -16, 2, 64)
     pygame.init()
     FONT = load_font("BalooThambi-Regular.ttf", (60, ))
+    BIG_FONT = load_font("BalooThambi-Regular.ttf", (100, ))
+    SMALL_FONT = load_font("BalooThambi-Regular.ttf", (40, ))
     SCREEN = pg.display.set_mode(DISPLAY_SIZE)
 
 
@@ -209,6 +214,11 @@ class Wall(GameObject):
     traversable = False
     tile_char = "*"
 
+class Forniture(GameObject):
+    color = 192, 100, 0
+    traversable = False
+    tile_char = "!"
+
 
 class Dirty(Vanishable, GameObject):
     color = Empty.color
@@ -343,7 +353,7 @@ class Level:
 
 
 class Display:
-    color = 255, 255, 255
+    color = 0, 0, 0
 
     def __init__(self, board):
         self.board = board
@@ -398,7 +408,6 @@ class Board:
                 self[x, y] = cls(self, (x, y))
 
         BLOCK_SIZE = WIDTH // self.width
-        print(f"new block size {BLOCK_SIZE}")
         reload_images()
         if hasattr(self, "display"):
             self.display.x_offset = None
@@ -488,24 +497,65 @@ def scene_main(clk, level_number):
         clk.tick(30)
 
 
+def game_over_screen(clk, message):
+    SCREEN.fill((127, 127, 127))
+    text1 = message, BIG_FONT
+    text2 = f"FINAL SCORE: {SCORE}", FONT
+    text3 = "<Space> to play", SMALL_FONT
+    text4 = "Q to quit", SMALL_FONT
+
+    color_level = 255
+    count = 0
+    while True:
+        pygame.event.pump()
+
+        for i, (message, font) in enumerate((text1, text2, text3, text4)):
+            rendered = font.render(message, True, (0, 0, color_level))
+            y = HEIGHT // 6 * (1 + i)
+            x = (WIDTH - rendered.get_width() ) // 2
+            SCREEN.blit(rendered, (x, y))
+
+        color_level -= 3
+        color_level += 255 if color_level < 0 else 0
+
+        keys = pygame.key.get_pressed()
+        if keys[pg.K_q] or keys[pg.K_ESCAPE] and count > 15:
+            raise UserQuit
+
+        if keys[pg.K_SPACE] and count > 15:
+            break
+
+        count += 1
+        pygame.display.flip()
+        clk.tick(30)
+
+
+
 def main():
     global SCORE
-    SCORE = 0
     init()
-    level_number = 0
     clk = pg.time.Clock()
     try:
         while True:
+            level_number = 0
+            SCORE = 0
             try:
-                scene_main(clk, level_number)
-            except LevelComplete:
-                # TODO: level transition graphics
-                pygame.time.delay(1000)
-                level_number += 1
-                if level_number > len(levels):
-                    # Game Over: Win graphics
-                    raise GameOver
-    except Interrupt:
+                while True:
+                    try:
+                        scene_main(clk, level_number)
+                    except LevelComplete:
+                        # TODO: level transition graphics
+                        pygame.time.delay(1000)
+                        level_number += 1
+                        if level_number >= len(levels):
+                            # Game Over: Win graphics
+                            raise GameComplete
+            except GameComplete:
+                game_over_screen(clk, "Game Complete")
+
+            except (GameOver, UserQuit):
+                game_over_screen(clk, "Game Over")
+    except Interrupt: # ESC or Q at GameOver screen
         pass
     finally:
         pg.display.quit()

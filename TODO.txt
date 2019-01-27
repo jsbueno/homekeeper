@@ -4,5 +4,4 @@ background art
 animate art
 create extras - like speed powers and extra pushes
 create extra levels
-create sound effects for swipping and dust vanishing, dust converters
 publish and upload to gamejam site
