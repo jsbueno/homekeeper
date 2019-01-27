@@ -218,10 +218,12 @@ class Dirty(Vanishable, GameObject):
     number_to_vanish = 4
 
     def moved(self, direction):
-        global SCORE
         if not (direction[0] or direction[1]):
             return
+        self.check_vanish()
 
+    def check_vanish(self):
+        global SCORE
         equal_neighbours = self.get_equal_neighbours()
         if len(equal_neighbours) < self.number_to_vanish:
             return
@@ -302,6 +304,7 @@ class Level:
                 raise GameOver
 
         block = class_(self.board, (x, y))
+        block.check_vanish()
         self.last_block = pygame.time.get_ticks() / 1000
         time_variation = self.dirty_pop_noise / 2
         self.next_block = self.last_block + (self.dirty_pop_rate + random.uniform(-time_variation, +time_variation))
@@ -318,7 +321,7 @@ class Level:
         if not self.pre_pop_had_run:
             self.pre_pop()
 
-        if self.elapsed_time >= self.next_block:
+        if pg.time.get_ticks() / 1000 >= self.next_block:
             self.pop_block()
 
         #if round(self.elapsed_time) > self.previous_time:
