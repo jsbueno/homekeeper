@@ -58,12 +58,12 @@ def init():
 def reload_images():
 
     for cls in GameObject.tile_registry.values():
-        cls.image = pygame.surface.Surface((BLOCK_SIZE, BLOCK_SIZE))
-        cls.image.fill(cls.color)
         if not 'image_file' in cls.__dict__:
+            cls.image = pygame.surface.Surface((BLOCK_SIZE, BLOCK_SIZE))
+            cls.image.fill(cls.color)
             continue
         # cls.image = load_image(cls.image_file, size=BLOCK_SIZE)
-        cls.image.blit(load_image(cls.image_file, size=BLOCK_SIZE), (0,0))
+        cls.image = load_image(cls.image_file, size=BLOCK_SIZE)
 
 
 
@@ -163,6 +163,17 @@ class GameObject(pygame.sprite.Sprite):
     def moved(self, direction):
         pass
 
+    def draw(self, screen):
+        pos = (self.x * BLOCK_SIZE, self.y * BLOCK_SIZE)
+        if not hasattr(self, "bg_image"):
+            new = pygame.Surface((BLOCK_SIZE, BLOCK_SIZE))
+            new.fill(self.color)
+            self.bg_image = new
+        screen.blit(self.bg_image, pos)
+
+        if self.previous:
+            screen.blit(self.previous.image, pos)
+        screen.blit(self.image, pos)
 
     def __init_subclass__(cls):
         if "tile_char" in cls.__dict__:
@@ -448,7 +459,8 @@ class Board:
         self.check_events()
         for x, y, block in self:
             block.update()
-            screen.blit(block.image, (block.x * BLOCK_SIZE, block.y * BLOCK_SIZE))
+            block.draw(screen)
+
         self.display.update()
 
 
