@@ -36,15 +36,17 @@ def create_sound(duration, base, target, distort_offset, envelope):
 def synthesize_sounds():
     sounds = {}
     sounds["level_up"] = create_sound(duration=1, base=432, target=1000, distort_offset=0, envelope=1)
+    sounds["vanish"] = create_sound(duration=.3, base=1000, target=700, distort_offset=60, envelope=100)
+    sounds["swype"] = create_sound(duration=.03, base=800, target=600, distort_offset=150, envelope=100)
 
     return sounds
 
 
 if __name__ == "__main__":
     pygame.init()
-    snd = create_sound(duration=1, base=432, target=1000, distort_offset=60, envelope=1)
+    snd = create_sound(duration=.03, base=800, target=600, distort_offset=150, envelope=100)
     snd.play()
 
-    pygame.time.delay(int(duration * 1000) + 200)
+    pygame.time.delay(int(duration * 300) + 200)
 
     pygame.quit()

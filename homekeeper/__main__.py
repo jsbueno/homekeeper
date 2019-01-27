@@ -40,6 +40,7 @@ class UserQuit(Interrupt):
 
 def init():
     global SCREEN, SOUNDS, FONT
+    pygame.mixer.init(22100, -16, 2, 64)
     pygame.init()
     FONT = load_font("BalooThambi-Regular.ttf", (60, ))
     SCREEN = pg.display.set_mode(DISPLAY_SIZE)
@@ -168,7 +169,7 @@ vanish_states = "solid blinking dead".split()
 class Vanishable:
     """Mixin class for things to go poof"""
 
-    vanish_frames = 10
+    vanish_frames = 30
     blink_frame_count = 3
 
     def __init__(self, *args, **kw):
@@ -220,6 +221,7 @@ class Dirty(Vanishable, GameObject):
     def moved(self, direction):
         if not (direction[0] or direction[1]):
             return
+        SOUNDS["swype"].play()
         self.check_vanish()
 
     def check_vanish(self):
@@ -235,6 +237,7 @@ class Dirty(Vanishable, GameObject):
             neighbour.kill()
 
         SCORE += score
+        SOUNDS["vanish"].play()
         self.board.level.killed_blocks += len(equal_neighbours)
 
     def get_equal_neighbours(self, group = None, seen=None):
