@@ -35,11 +35,32 @@ def init():
     pygame.init()
     SCREEN = pg.display.set_mode(DISPLAY_SIZE)
 
+    FONT = load_font("BalooThambi-Regular.ttf", (int(BLOCK_SIZE) * 2, ))
+
+    for cls in GameObject.tile_registry.values():
+        if not 'image_file' in cls.__dict__:
+            continue
+        # cls.image = load_image(cls.image_file, size=BLOCK_SIZE)
+        cls.image.blit(load_image(cls.image_file, size=BLOCK_SIZE), (0,0))
+
+def _load_resource(filename, module_name, pg_builder, args):
     # Workaround to read font file even from packaged gamefile:
     with tempfile.NamedTemporaryFile() as f_:
-        f_.write(resources.open_binary("homekeeper.fonts", "BalooThambi-Regular.ttf").read())
+        f_.write(resources.open_binary("homekeeper." + module_name, filename).read())
         f_.seek(0)
-        FONT = pygame.font.Font(f_.name, int(BLOCK_SIZE * 2))
+        return pg_builder(f_.name, *args)
+
+
+def load_font(filename, args):
+    return _load_resource(filename, "fonts", pygame.font.Font, args)
+
+
+def load_image(filename, size=None):
+    img = _load_resource(filename, "images", pygame.image.load, ())
+    if size:
+        img = pygame.transform.rotozoom(img, 0, size/img.get_width())
+    return img
+
 
 
 def handle_input():
@@ -172,10 +193,11 @@ class Wall(GameObject):
 
 
 class Dirty(Vanishable, GameObject):
-    color = 0, 0, 255
+    color = Empty.color
     traversable = True
     pushable = True
     tile_char = "A"
+    image_file = "blue_dirty.png"
 
     def moved(self, direction):
         if not (direction[0] or direction[1]):
@@ -211,7 +233,8 @@ class Dirty(Vanishable, GameObject):
 
 
 class Dirty2(Dirty):
-    color = 0, 128, 255
+    color = Empty.color
+    image_file = "cyan_dirty.png"
     tile_char = "B"
 
 
