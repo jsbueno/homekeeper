@@ -271,6 +271,7 @@ class Dirty2(Dirty):
     tile_char = "B"
 
 class Dirty3(Dirty):
+    number_to_vanish = 5
     image_file = "yellow_dirty.png"
     tile_char = "C"
 
