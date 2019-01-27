@@ -190,6 +190,11 @@ class Dirty(Vanishable, GameObject):
         return group
 
 
+class Dirty2(Dirty):
+    color = 0, 128, 255
+    tile_char = "B"
+
+
 class Board:
     def __init__(self, width=32, height=24, mapname=""):
         self.data = [None] * width * height

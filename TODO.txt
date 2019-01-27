@@ -1,7 +1,7 @@
 create extra dirty classes/groups
+make dirty appear gradually and time-based goals
 On screen display of Score and goals for each level
 replace blocks by static art
-make dirty appear gradually and time-based goals
 Determining level goals for first level
 create extra levels
 refine publising metada
