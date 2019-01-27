@@ -1,0 +1,13 @@
+fix pushing-with-strenght 2
+Animate piece vanishing
+On screen display of Score and goals for each level
+replace blocks by static art
+create extra dirty classes
+make dirty appear gradually and time-based goals
+Determining level goals for first level
+create extra levels
+refine publising metada
+animate art
+create sound effects for swipping and dust vanishing
+create extras - like speed powers and extra pushes
+publish and upload to gamejam site

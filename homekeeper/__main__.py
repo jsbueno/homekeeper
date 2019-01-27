@@ -1,3 +1,4 @@
+from importlib import resources
 from pathlib import Path
 
 import pygame
@@ -153,18 +154,14 @@ class Dirty(GameObject):
         return group
 
 
-
-
-
-
 class Board:
-    def __init__(self, width=32, height=24, map=""):
+    def __init__(self, width=32, height=24, mapname=""):
         self.data = [None] * width * height
         self.width = width
         self.height = height
         self.clear()
         if map:
-            self.load_map(map)
+            self.load_map(mapname)
         self.score = 0
 
     def clear(self):
@@ -172,8 +169,8 @@ class Board:
             empty = Empty(self, (x, y))
 
 
-    def load_map(self, mapfile):
-        with mapfile.open() as map_:
+    def load_map(self, mapname):
+        with resources.open_text("homekeeper.maps", mapname) as map_:
             for y, row in enumerate(map_):
                 for x, char in enumerate(row):
                     if x >= self.width:
@@ -208,7 +205,7 @@ class Character(GameObject):
     color = 255, 0, 0
     traversable = False
     pushable = False
-    move_delay = 3
+    move_delay = 4
 
     def __init__(self, *args, **kw):
         super().__init__(*args, **kw)
@@ -222,7 +219,7 @@ class Character(GameObject):
             return
         direction = (keys[pg.K_RIGHT] - keys[pg.K_LEFT]), (keys[pg.K_DOWN] - keys[pg.K_UP])
 
-        if self.movable(direction, keys[pg.K_SPACE], 1):
+        if self.movable(direction, keys[pg.K_SPACE], 2):
             if direction[0] or direction[1]:
                 self.move_count = self.move_delay * (1 + keys[pg.K_SPACE])
             self.move(direction, keys[pg.K_SPACE], 1)
@@ -235,7 +232,7 @@ def frame_clear():
 
 def scene_main():
     clk = pg.time.Clock()
-    board = Board(map=Path("maps/bedroom.txt"))
+    board = Board(mapname="bedroom.txt")
     character = Character(board, (1, 1))
 
 
