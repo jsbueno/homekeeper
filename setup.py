@@ -3,9 +3,9 @@
 from setuptools import setup
 
 setup(
-    name = 'homekeeper',
+    name = 'homekeeper-game',
     packages = ['homekeeper'],
-    version = "1.0",
+    version = "1.0.2",
     license = "LGPLv3+,by-nc-sa-4.0",
     author = "João S. O. Bueno",
     author_email = "gwidion@gmail.com",
@@ -14,7 +14,7 @@ setup(
     py_modules = ['homekeeper'],
     url = 'https://github.com/jsbueno/homekeeper',
     long_description = '', # open('README.md').read(),
-    requires = ["pygame", "numpy"],
+    install_requires = ["pygame", "numpy"],
     test_requires = [],
     classifiers = [
         "Development Status :: 5 - Production/Stable",
