@@ -239,7 +239,7 @@ class Dirty(Vanishable, GameObject):
     traversable = True
     pushable = True
     tile_char = "A"
-    image_file = "blue_dirty.png"
+    image_file = "ball_blue_00.png"
     number_to_vanish = 4
 
     def moved(self, direction):
@@ -282,20 +282,20 @@ class Dirty(Vanishable, GameObject):
 
 class Dirty2(Dirty):
     traversable = False
-    image_file = "cyan_dirty.png"
+    image_file = "ball_cyan_00.png"
     tile_char = "B"
 
 class Dirty3(Dirty):
     number_to_vanish = 5
-    image_file = "yellow_dirty.png"
+    image_file = "ball_yellow_00.png"
     tile_char = "C"
 
 class Dirty4(Dirty):
-    image_file = "red_dirty.png"
+    image_file = "ball_red_00.png"
     tile_char = "D"
 
 class Dirty5(Dirty):
-    image_file = "black_dirty.png"
+    image_file = "ball_black_00.png"
     tile_char = "E"
 
 
